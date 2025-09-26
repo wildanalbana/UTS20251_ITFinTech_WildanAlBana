@@ -6,7 +6,6 @@ import Payment from '../../../models/Payment.js';
 export default async function handler(req, res) {
   await connect();
 
-  // validasi callback token dari Xendit
   const token = req.headers['x-callback-token'];
   if (!token || token !== process.env.XENDIT_CALLBACK_TOKEN) {
     return res.status(401).json({ ok: false, message: 'Invalid token' });
