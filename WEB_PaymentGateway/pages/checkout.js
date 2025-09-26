@@ -236,7 +236,7 @@ export default function CheckoutPage() {
                   backgroundColor: index % 2 === 0 ? '#f9fafb' : 'white'
                 }}
               >
-                <span>{it.name} **({it.qty}x)**</span>
+                <span>{it.name} ({it.qty}x)</span>
                 <span style={{fontWeight: 'bold'}}>Rp {(it.qty * it.price).toLocaleString('id-ID')}</span>
               </div>
             ))

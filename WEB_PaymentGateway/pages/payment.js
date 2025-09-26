@@ -13,11 +13,20 @@ export default function PaymentStatus() {
   const PRIMARY_BG_GRADIENT = `linear-gradient(135deg, ${PRIMARY_GREEN_LIGHT} 0%, ${PRIMARY_GREEN_DARK} 100%)`;
   const TEXT_COLOR_DARK = '#374151';
 
+  // --- PERBAIKAN: Pastikan halaman full screen (mengatasi masalah 1) ---
+  useEffect(() => {
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.padding = '0';
+  }, []);
+  // -------------------------------------------------------------------
+
+
   // LOGIC POLLING STATUS DARI XENDIT
   useEffect(() => {
     if (!external_id) return;
     
-    // Polling setiap 3 detik (3000ms)
     const iv = setInterval(async () => {
       try {
         const r = await fetch(`/api/payment/status?external_id=${external_id}`);
@@ -26,13 +35,14 @@ export default function PaymentStatus() {
         const currentStatus = d.status || 'PENDING';
         setStatus(currentStatus);
         
-        // Hentikan polling jika status sudah final
         if (currentStatus === 'PAID' || currentStatus === 'EXPIRED') {
           clearInterval(iv);
+          if (currentStatus === 'PAID') {
+            localStorage.removeItem('cart');
+          }
         }
       } catch (error) {
         console.error("Failed to fetch payment status:", error);
-        // Hentikan polling sementara jika ada error
       }
     }, 3000);
 
@@ -51,25 +61,26 @@ export default function PaymentStatus() {
   if (status === 'PAID') {
     statusDisplay = {
       emoji: '🎉',
-      color: '#10b981', // Hijau (Paid)
+      color: PRIMARY_GREEN_LIGHT, // Hijau (Paid)
       title: 'Pembayaran Berhasil!',
       description: 'Terima kasih! Pesanan Anda telah dikonfirmasi dan akan segera diproses.',
     };
-  } else if (status === 'EXPIRED') {
+  } else if (status === 'EXPIRED' || status === 'FAILED') {
     statusDisplay = {
       emoji: '❌',
-      color: '#ef4444', // Merah (Expired)
-      title: 'Pembayaran Kedaluwarsa',
-      description: 'Waktu pembayaran telah habis. Silakan buat pesanan baru untuk melanjutkan.',
+      color: '#ef4444', // Merah (Expired/Failed)
+      title: 'Pembayaran Gagal/Kedaluwarsa',
+      description: 'Waktu pembayaran telah habis atau gagal. Silakan buat pesanan baru untuk melanjutkan.',
     };
   }
 
   // Styles statis
   const containerStyle = {
     fontFamily: 'Arial, sans-serif',
-    background: PRIMARY_BG_GRADIENT,
+    // Menggunakan viewport width/height untuk memastikan full screen
+    width: '100vw', 
     minHeight: '100vh',
-    width: '100vw',
+    background: PRIMARY_BG_GRADIENT,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -84,14 +95,20 @@ export default function PaymentStatus() {
     borderRadius: '20px',
     boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
     padding: '40px',
-    textAlign: 'center'
+    textAlign: 'center' // Memastikan teks di dalam card center (mengatasi masalah 2)
   };
+  
+  // Perbaikan kecil pada ikon untuk centering yang lebih baik
+  const statusIconContainerStyle = { 
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '20px',
+  }
 
   const statusIconStyle = {
     fontSize: '5em',
-    marginBottom: '20px',
     color: statusDisplay.color,
-    transition: 'color 0.5s ease'
+    transition: 'color 0.5s ease',
   };
 
   const statusTitleStyle = {
@@ -111,7 +128,8 @@ export default function PaymentStatus() {
   const orderIdStyle = {
     fontSize: '0.9em',
     color: '#9ca3af',
-    wordBreak: 'break-all'
+    wordBreak: 'break-all',
+    margin: '10px 0'
   };
 
   const primaryButtonStyle = {
@@ -125,7 +143,8 @@ export default function PaymentStatus() {
     cursor: 'pointer',
     fontSize: '1.1em',
     marginTop: '20px',
-    boxShadow: `0 5px 15px rgba(16, 185, 129, 0.4)`
+    boxShadow: `0 5px 15px rgba(16, 185, 129, 0.4)`,
+    transition: 'all 0.3s ease'
   };
   
   const secondaryButtonStyle = {
@@ -141,13 +160,16 @@ export default function PaymentStatus() {
     <div style={containerStyle}>
       <div style={cardStyle}>
         
-        <div style={statusIconStyle}>{statusDisplay.emoji}</div>
+        {/* Ikon di dalam container flex untuk memastikan centering */}
+        <div style={statusIconContainerStyle}> 
+            <span style={statusIconStyle}>{statusDisplay.emoji}</span>
+        </div>
 
         <h1 style={statusTitleStyle}>{statusDisplay.title}</h1>
         <p style={statusDescStyle}>{statusDisplay.description}</p>
         
         <p style={orderIdStyle}>
-          **Order ID:** {external_id || 'N/A'}
+          Order ID: {external_id || 'N/A'}
         </p>
 
         <p style={{fontSize: '1.5em', fontWeight: 'bold', color: TEXT_COLOR_DARK, margin: '20px 0 10px 0'}}>
@@ -166,23 +188,19 @@ export default function PaymentStatus() {
         
         {(status === 'PENDING' || status === 'LOADING') && (
           <div>
-            <p style={{color: TEXT_COLOR_DARK, fontWeight: 'bold'}}>
-                ⏳ Status diperiksa setiap 3 detik.
+            <p style={{color: TEXT_COLOR_DARK, fontWeight: 'bold', fontSize: '0.9em'}}>
+                ⏳ Status diperiksa setiap 3 detik. Jangan tutup halaman ini.
             </p>
             <button 
               style={secondaryButtonStyle}
-              onClick={() => {
-                // Biasanya membuka link invoice Xendit yang tersimpan di state atau DB,
-                // tapi karena ini dummy, kita arahkan ke homepage
-                router.push('/');
-              }}
+              onClick={() => router.push('/select-items')} 
             >
-              Lihat Detail Invoice
+              Cek Produk Lain
             </button>
           </div>
         )}
 
-        {status === 'EXPIRED' && (
+        {(status === 'EXPIRED' || status === 'FAILED') && (
           <button 
             style={primaryButtonStyle} 
             onClick={() => router.push('/select-items')}

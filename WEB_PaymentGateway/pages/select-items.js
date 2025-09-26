@@ -287,7 +287,7 @@ export default function SelectItems() {
             e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
           }}
         >
-          🛒 **CHECKOUT** ({totalItems})
+          🛒 CHECKOUT ({totalItems})
         </a>
       </div>
 
