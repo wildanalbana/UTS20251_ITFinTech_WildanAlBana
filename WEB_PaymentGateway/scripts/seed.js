@@ -11,7 +11,6 @@ async function seed() {
       category: 'Pet Food',
       price: 250000,
       stock: 20,
-      image: '/images/dog-food.png',
       description: 'Makanan anjing premium 5kg dengan nutrisi lengkap'
     },
     {
@@ -19,7 +18,6 @@ async function seed() {
       category: 'Pet Food',
       price: 150000,
       stock: 30,
-      image: '/images/cat-food.png',
       description: 'Makanan kucing rasa salmon 2kg'
     },
     {
@@ -27,7 +25,6 @@ async function seed() {
       category: 'Pet Food',
       price: 50000,
       stock: 50,
-      image: '/images/bird-seed.png',
       description: 'Campuran biji-bijian sehat untuk burung'
     }
   ];
