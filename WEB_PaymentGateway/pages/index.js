@@ -281,23 +281,18 @@ export default function Home() {
 
   return (
     <div style={containerStyle}>
-      {/* Floating background elements */}
       <div style={backgroundElements}>
         <div style={floatingElement1}></div>
         <div style={floatingElement2}></div>
         <div style={floatingElement3}></div>
       </div>
 
-      {/* Main Card */}
       <div style={cardStyle}>
         
-        {/* Header Section */}
         <div style={headerStyle}>
-          {/* Decorative elements */}
           <div style={decorativeStyle1}>🌿</div>
           <div style={decorativeStyle2}>🌱</div>
           
-          {/* Main icon */}
           <div style={mainIconStyle}>🥗</div>
           
           <h1 style={h1Style}>Natural Nosh</h1>
@@ -306,17 +301,14 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Content Section */}
         <div style={contentStyle}>
           
-          {/* Welcome Message */}
           <div style={welcomeStyle}>
             <p style={descriptionStyle}>
               Berikan nutrisi terbaik untuk sahabat berbulu Anda dengan produk premium pilihan
             </p>
           </div>
 
-          {/* Features Grid */}
           <div style={featuresGridStyle}>
             <div style={featureCardStyle}>
               <div style={featureIconStyle}>💳</div>
@@ -332,7 +324,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Popular Products Preview */}
           <div style={productsPreviewStyle}>
             <h3 style={productsHeaderStyle}>Makanan Alami Favorit</h3>
             <div style={productsListStyle}>
@@ -351,7 +342,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Action Button */}
           <button 
             style={buttonStyle}
             onClick={() => window.location.href = '/select-items'}
@@ -363,7 +353,6 @@ export default function Home() {
             </div>
           </button>
 
-          {/* Security Badge */}
           <div style={securityBadgeStyle}>
             <div style={securityHeaderStyle}>
               <span style={{color: '#10b981'}}>🔐</span>
@@ -372,7 +361,6 @@ export default function Home() {
             <p style={securityDescStyle}>Transaksi dilindungi enkripsi bank</p>
           </div>
 
-          {/* Footer */}
           <div style={footerStyle}>
             <p style={footerTextStyle}>
               Powered by <span style={brandStyle}>Xendit</span>

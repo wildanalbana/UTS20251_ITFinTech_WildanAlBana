@@ -1,4 +1,3 @@
-// pages/api/xendit/webhook.js
 import connect from '../../../lib/mongodb.js';
 import Checkout from '../../../models/Checkout.js';
 import Payment from '../../../models/Payment.js';

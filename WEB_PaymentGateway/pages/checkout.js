@@ -1,11 +1,9 @@
-// pages/checkout.js
 import { useEffect, useState } from 'react';
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState([]);
   const [email, setEmail] = useState('');
 
-  // Warna yang diambil dari kode Homepage
   const GRADIENT_START = '#10b981'; 
   const GRADIENT_END = '#047857';  
   const PRIMARY_BUTTON_LIGHT = '#10b981';
@@ -31,7 +29,6 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Ambil tombol untuk visual feedback
     const button = document.getElementById('payButton');
     const originalText = button.innerText;
     button.innerText = 'Memproses...';
@@ -221,7 +218,7 @@ export default function CheckoutPage() {
           <p style={{color: '#6b7280', margin: 0}}>Pastikan semua pesanan sudah benar sebelum membayar.</p>
         </div>
 
-        {/* Daftar Item Keranjang */}
+        
         <div style={cartListStyle}>
           {cart.length === 0 ? (
             <div style={emptyCartStyle}>
@@ -243,13 +240,11 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        {/* Total Harga */}
         <div style={totalStyle}>
           <span>Total Bayar</span>
           <span>Rp {total.toLocaleString('id-ID')}</span>
         </div>
         
-        {/* DETAIL PEMBAYARAN */}
         <div style={paymentDetailsStyle}>
             <p style={{fontSize: '0.9em', fontWeight: 'bold', color: PRIMARY_TEXT_COLOR, marginBottom: '5px'}}>
                 Pilih Metode Pembayaran:
@@ -265,7 +260,6 @@ export default function CheckoutPage() {
             </p>
         </div>
 
-        {/* Keamanan Transaksi */}
         <div style={securityBadgeStyle}>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
                 <span style={{color: PRIMARY_BUTTON_DARK}}>🔐</span>
@@ -277,7 +271,7 @@ export default function CheckoutPage() {
           Masukkan Email Anda untuk menerima Invoice Pembayaran:
         </p>
         
-        {/* Input Email */}
+        
         <input
           type="email"
           id="emailInput"
@@ -289,7 +283,7 @@ export default function CheckoutPage() {
           onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
         />
 
-        {/* Tombol Pembayaran */}
+        
         <button
           id="payButton"
           onClick={handlePay}

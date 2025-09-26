@@ -1,4 +1,3 @@
-// pages/api/payment/status.js
 import connect from '../../../lib/mongodb.js';
 import Payment from '../../../models/Payment.js';
 

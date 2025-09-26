@@ -1,4 +1,3 @@
-// pages/payment.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -7,13 +6,11 @@ export default function PaymentStatus() {
   const { external_id } = router.query;
   const [status, setStatus] = useState('LOADING');
 
-  // Warna yang diambil dari skema hijau Natural Nosh
   const PRIMARY_GREEN_LIGHT = '#10b981';
   const PRIMARY_GREEN_DARK = '#059669';
   const PRIMARY_BG_GRADIENT = `linear-gradient(135deg, ${PRIMARY_GREEN_LIGHT} 0%, ${PRIMARY_GREEN_DARK} 100%)`;
   const TEXT_COLOR_DARK = '#374151';
 
-  // --- PERBAIKAN: Pastikan halaman full screen (mengatasi masalah 1) ---
   useEffect(() => {
     document.body.style.margin = '0';
     document.body.style.padding = '0';
@@ -23,7 +20,6 @@ export default function PaymentStatus() {
   // -------------------------------------------------------------------
 
 
-  // LOGIC POLLING STATUS DARI XENDIT
   useEffect(() => {
     if (!external_id) return;
     
@@ -49,11 +45,10 @@ export default function PaymentStatus() {
     return () => clearInterval(iv);
   }, [external_id]);
 
-  // STYLES DINAMIS BERDASARKAN STATUS
   
   let statusDisplay = {
     emoji: '⏳',
-    color: '#fbbf24', // Kuning (Pending/Loading)
+    color: '#fbbf24', 
     title: 'Menunggu Pembayaran',
     description: 'Kami sedang menunggu konfirmasi dari sistem pembayaran. Silakan cek invoice Xendit Anda.',
   };
@@ -61,23 +56,21 @@ export default function PaymentStatus() {
   if (status === 'PAID') {
     statusDisplay = {
       emoji: '🎉',
-      color: PRIMARY_GREEN_LIGHT, // Hijau (Paid)
+      color: PRIMARY_GREEN_LIGHT, 
       title: 'Pembayaran Berhasil!',
       description: 'Terima kasih! Pesanan Anda telah dikonfirmasi dan akan segera diproses.',
     };
   } else if (status === 'EXPIRED' || status === 'FAILED') {
     statusDisplay = {
       emoji: '❌',
-      color: '#ef4444', // Merah (Expired/Failed)
+      color: '#ef4444', 
       title: 'Pembayaran Gagal/Kedaluwarsa',
       description: 'Waktu pembayaran telah habis atau gagal. Silakan buat pesanan baru untuk melanjutkan.',
     };
   }
 
-  // Styles statis
   const containerStyle = {
     fontFamily: 'Arial, sans-serif',
-    // Menggunakan viewport width/height untuk memastikan full screen
     width: '100vw', 
     minHeight: '100vh',
     background: PRIMARY_BG_GRADIENT,
@@ -95,10 +88,9 @@ export default function PaymentStatus() {
     borderRadius: '20px',
     boxShadow: '0 15px 40px rgba(0,0,0,0.3)',
     padding: '40px',
-    textAlign: 'center' // Memastikan teks di dalam card center (mengatasi masalah 2)
+    textAlign: 'center' 
   };
   
-  // Perbaikan kecil pada ikon untuk centering yang lebih baik
   const statusIconContainerStyle = { 
     display: 'flex',
     justifyContent: 'center',
@@ -160,7 +152,6 @@ export default function PaymentStatus() {
     <div style={containerStyle}>
       <div style={cardStyle}>
         
-        {/* Ikon di dalam container flex untuk memastikan centering */}
         <div style={statusIconContainerStyle}> 
             <span style={statusIconStyle}>{statusDisplay.emoji}</span>
         </div>
@@ -176,7 +167,6 @@ export default function PaymentStatus() {
             Status: <span style={{color: statusDisplay.color}}>{status}</span>
         </p>
 
-        {/* Tombol Aksi berdasarkan Status */}
         {status === 'PAID' && (
           <button 
             style={primaryButtonStyle} 

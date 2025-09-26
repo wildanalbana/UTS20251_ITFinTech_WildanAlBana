@@ -1,4 +1,3 @@
-// pages/api/checkout/create.js
 import connect from '../../../lib/mongodb.js';
 import Checkout from '../../../models/Checkout.js';
 import Payment from '../../../models/Payment.js';
@@ -25,7 +24,6 @@ export default async function handler(req, res) {
 
   const externalId = `order-${Date.now()}`;
 
-  // create checkout record first
   const checkout = await Checkout.create({
     externalId,
     items,
@@ -33,13 +31,11 @@ export default async function handler(req, res) {
     status: 'PENDING',
   });
 
-  // prepare Xendit request (direct HTTP call)
   const secretKey = process.env.XENDIT_SECRET_KEY;
   if (!secretKey) {
     return res.status(500).json({ ok: false, error: 'XENDIT_SECRET_KEY missing on server' });
   }
 
-  // Xendit basic auth: base64(secretKey + ':')
   const basicAuth = Buffer.from(`${secretKey}:`).toString('base64');
 
   const payload = {
@@ -63,10 +59,8 @@ export default async function handler(req, res) {
 
     const inv = await r.json();
 
-    // If Xendit returns non-2xx it still returns JSON with error details
     if (!r.ok) {
       console.error('Xendit API error response:', inv);
-      // update payment record with failed status (optional)
       await Payment.create({
         checkout: checkout._id,
         externalId,
@@ -80,7 +74,6 @@ export default async function handler(req, res) {
 
     console.log('✅ Xendit invoice created:', inv);
 
-    // save Payment record
     await Payment.create({
       checkout: checkout._id,
       externalId,

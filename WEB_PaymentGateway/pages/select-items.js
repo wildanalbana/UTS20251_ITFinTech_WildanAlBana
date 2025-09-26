@@ -1,23 +1,20 @@
 import { useEffect, useState } from 'react';
 
 export default function SelectItems() {
-  // Warna yang diambil dari kode Homepage
-  const GRADIENT_START = '#10b981'; // Hijau Cerah
-  const GRADIENT_END = '#047857';   // Hijau Gelap
+  const GRADIENT_START = '#10b981'; 
+  const GRADIENT_END = '#047857';   
   const PRIMARY_BUTTON_LIGHT = '#10b981';
   const PRIMARY_BUTTON_DARK = '#059669';
 
-  // DUMMY DATA DENGAN OBJECTID PALSU YANG VALID (24 karakter heksadesimal)
   const initialProducts = [
     { _id: '65ffe3f1d9d7e5d8a9f0b1c2', name: 'Dog Food Premium 5kg', price: 250000, category: 'Dog Food' },
     { _id: '65ffe3f1d9d7e5d8a9f0b1c3', name: 'Cat Food Salmon 2kg', price: 150000, category: 'Cat Food' },
     { _id: '65ffe3f1d9d7e5d8a9f0b1c4', name: 'Bird Seed Mix 1kg', price: 50000, category: 'Bird Food' },
   ];
 
-  const [products, setProducts] = useState(initialProducts); // Menggunakan dummy data awal
+  const [products, setProducts] = useState(initialProducts); 
   const [cart, setCart] = useState([]);
 
-  // Reset margin dan padding browser
   useEffect(() => {
     document.body.style.margin = '0';
     document.body.style.padding = '0';
@@ -26,14 +23,7 @@ export default function SelectItems() {
   }, []);
 
   useEffect(() => {
-    // Di lingkungan produksi, Anda akan menggunakan fetch ini:
-    /*
-    fetch('/api/products')
-      .then(r => r.json())
-      .then(d => setProducts(d.products || []));
-    */
     
-    // Ambil keranjang dari Local Storage
     const stored = JSON.parse(localStorage.getItem('cart') || '[]');
     setCart(stored);
   }, []);
@@ -44,7 +34,6 @@ export default function SelectItems() {
     if (exists) {
       next = cart.map(i => i.name === p.name ? { ...i, qty: i.qty + 1 } : i);
     } else {
-      // Pastikan p._id (ObjectID palsu) dikirimkan di sini
       next = [...cart, { product: p._id, name: p.name, price: p.price, qty: 1 }];
     }
     setCart(next);
@@ -70,7 +59,6 @@ export default function SelectItems() {
     return item ? item.qty : 0;
   }
 
-  // Styles yang Disesuaikan ke Skema Hijau Homepage
   const containerStyle = {
     fontFamily: 'Arial, sans-serif',
     background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${PRIMARY_BUTTON_DARK} 50%, ${GRADIENT_END} 100%)`,
@@ -97,7 +85,7 @@ export default function SelectItems() {
 
   const cartButtonStyle = {
     background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, 
-    color: 'white', // Font Putih
+    color: 'white', 
     padding: '15px 35px',
     borderRadius: '50px',
     textDecoration: 'none',
