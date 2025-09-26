@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
 
 export default function SelectItems() {
-  const [products, setProducts] = useState([]);
+  // Warna yang diambil dari kode Homepage
+  const GRADIENT_START = '#10b981'; // Hijau Cerah
+  const GRADIENT_END = '#047857';   // Hijau Gelap
+  const PRIMARY_BUTTON_LIGHT = '#10b981';
+  const PRIMARY_BUTTON_DARK = '#059669';
+
+  // DUMMY DATA DENGAN OBJECTID PALSU YANG VALID (24 karakter heksadesimal)
+  const initialProducts = [
+    { _id: '65ffe3f1d9d7e5d8a9f0b1c2', name: 'Dog Food Premium 5kg', price: 250000, category: 'Dog Food' },
+    { _id: '65ffe3f1d9d7e5d8a9f0b1c3', name: 'Cat Food Salmon 2kg', price: 150000, category: 'Cat Food' },
+    { _id: '65ffe3f1d9d7e5d8a9f0b1c4', name: 'Bird Seed Mix 1kg', price: 50000, category: 'Bird Food' },
+  ];
+
+  const [products, setProducts] = useState(initialProducts); // Menggunakan dummy data awal
   const [cart, setCart] = useState([]);
 
   // Reset margin dan padding browser
@@ -13,9 +26,14 @@ export default function SelectItems() {
   }, []);
 
   useEffect(() => {
+    // Di lingkungan produksi, Anda akan menggunakan fetch ini:
+    /*
     fetch('/api/products')
       .then(r => r.json())
       .then(d => setProducts(d.products || []));
+    */
+    
+    // Ambil keranjang dari Local Storage
     const stored = JSON.parse(localStorage.getItem('cart') || '[]');
     setCart(stored);
   }, []);
@@ -26,6 +44,7 @@ export default function SelectItems() {
     if (exists) {
       next = cart.map(i => i.name === p.name ? { ...i, qty: i.qty + 1 } : i);
     } else {
+      // Pastikan p._id (ObjectID palsu) dikirimkan di sini
       next = [...cart, { product: p._id, name: p.name, price: p.price, qty: 1 }];
     }
     setCart(next);
@@ -51,10 +70,10 @@ export default function SelectItems() {
     return item ? item.qty : 0;
   }
 
-  // Styles
+  // Styles yang Disesuaikan ke Skema Hijau Homepage
   const containerStyle = {
     fontFamily: 'Arial, sans-serif',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${PRIMARY_BUTTON_DARK} 50%, ${GRADIENT_END} 100%)`,
     minHeight: '100vh',
     width: '100vw',
     margin: '0',
@@ -77,15 +96,15 @@ export default function SelectItems() {
   };
 
   const cartButtonStyle = {
-    background: 'linear-gradient(135deg, #ff6b6b, #feca57)',
-    color: 'white',
+    background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, 
+    color: 'white', // Font Putih
     padding: '15px 35px',
     borderRadius: '50px',
     textDecoration: 'none',
     fontSize: '1.2em',
     fontWeight: '700',
     display: 'inline-block',
-    boxShadow: '0 6px 20px rgba(255, 107, 107, 0.4)',
+    boxShadow: `0 6px 20px rgba(16, 185, 129, 0.4)`, 
     transition: 'all 0.3s ease',
     textTransform: 'uppercase',
     letterSpacing: '1px'
@@ -113,7 +132,7 @@ export default function SelectItems() {
   const productImagePlaceholderStyle = {
     width: '100%',
     height: '180px',
-    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${PRIMARY_BUTTON_DARK} 100%)`, 
     borderRadius: '15px',
     marginBottom: '20px',
     display: 'flex',
@@ -132,10 +151,10 @@ export default function SelectItems() {
   };
 
   const productCategoryStyle = {
-    color: '#7f8c8d',
+    color: '#6b7280', 
     fontSize: '0.9em',
     marginBottom: '15px',
-    backgroundColor: '#ecf0f1',
+    backgroundColor: '#f9fafb', 
     padding: '6px 15px',
     borderRadius: '20px',
     display: 'inline-block',
@@ -145,7 +164,7 @@ export default function SelectItems() {
   const productPriceStyle = {
     fontSize: '1.4em',
     fontWeight: '800',
-    color: '#e74c3c',
+    color: PRIMARY_BUTTON_DARK, 
     marginBottom: '20px'
   };
 
@@ -176,13 +195,13 @@ export default function SelectItems() {
 
   const minusButtonStyle = {
     ...quantityButtonStyle,
-    background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)',
+    background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)', 
     color: 'white'
   };
 
   const plusButtonStyle = {
     ...quantityButtonStyle,
-    background: 'linear-gradient(135deg, #4ecdc4, #44a08d)',
+    background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, 
     color: 'white'
   };
 
@@ -195,7 +214,7 @@ export default function SelectItems() {
   };
 
   const addToCartButtonStyle = {
-    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, 
     color: 'white',
     border: 'none',
     padding: '12px 25px',
@@ -205,12 +224,13 @@ export default function SelectItems() {
     cursor: 'pointer',
     width: '100%',
     transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+    boxShadow: `0 4px 15px rgba(16, 185, 129, 0.3)`
   };
 
   const pawIconStyle = {
     fontSize: '2em',
-    marginBottom: '15px'
+    marginBottom: '15px',
+    color: 'white'
   };
 
   const totalItemsStyle = {
@@ -247,7 +267,7 @@ export default function SelectItems() {
     <div style={containerStyle}>
       <div style={headerStyle}>
         <div style={pawIconStyle}>🐾</div>
-        <h1 style={titleStyle}>Pet Shop Store</h1>
+        <h1 style={titleStyle}>Natural Nosh Store</h1> 
         
         {totalItems > 0 && (
           <div style={totalItemsStyle}>
@@ -260,14 +280,14 @@ export default function SelectItems() {
           style={cartButtonStyle}
           onMouseOver={(e) => {
             e.target.style.transform = 'translateY(-3px) scale(1.05)';
-            e.target.style.boxShadow = '0 10px 30px rgba(255, 107, 107, 0.6)';
+            e.target.style.boxShadow = '0 10px 30px rgba(16, 185, 129, 0.6)';
           }}
           onMouseOut={(e) => {
             e.target.style.transform = 'translateY(0) scale(1)';
-            e.target.style.boxShadow = '0 6px 20px rgba(255, 107, 107, 0.4)';
+            e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
           }}
         >
-          🛒 Checkout ({totalItems})
+          🛒 **CHECKOUT** ({totalItems})
         </a>
       </div>
 
@@ -324,7 +344,7 @@ export default function SelectItems() {
                         style={plusButtonStyle}
                         onMouseOver={(e) => {
                           e.target.style.transform = 'scale(1.1)';
-                          e.target.style.boxShadow = '0 4px 12px rgba(78, 205, 196, 0.4)';
+                          e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
                         }}
                         onMouseOut={(e) => {
                           e.target.style.transform = 'scale(1)';
@@ -334,7 +354,7 @@ export default function SelectItems() {
                         +
                       </button>
                     </div>
-                    <div style={{textAlign: 'center', fontSize: '0.9em', color: '#27ae60', fontWeight: '600'}}>
+                    <div style={{textAlign: 'center', fontSize: '0.9em', color: '#059669', fontWeight: '600'}}>
                       ✅ Added to cart
                     </div>
                   </div>
@@ -343,14 +363,14 @@ export default function SelectItems() {
                     onClick={() => addToCart(p)}
                     style={addToCartButtonStyle}
                     onMouseOver={(e) => {
-                      e.target.style.background = 'linear-gradient(135deg, #5a6fd8, #6a42a0)';
+                      e.target.style.background = `linear-gradient(135deg, ${PRIMARY_BUTTON_DARK}, ${PRIMARY_BUTTON_LIGHT})`;
                       e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+                      e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
                     }}
                     onMouseOut={(e) => {
-                      e.target.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                      e.target.style.background = `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`;
                       e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)';
+                      e.target.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
                     }}
                   >
                     🛍️ Add to Cart
