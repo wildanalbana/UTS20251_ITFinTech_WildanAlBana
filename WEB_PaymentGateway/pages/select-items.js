@@ -1,57 +1,89 @@
+// components/SelectItems.js  (atau pages/... sesuai strukturmu)
 import { useEffect, useState } from 'react';
 
 export default function SelectItems() {
-  const GRADIENT_START = '#10b981'; 
-  const GRADIENT_END = '#047857';   
+  const GRADIENT_START = '#10b981';
+  const GRADIENT_END = '#047857';
   const PRIMARY_BUTTON_LIGHT = '#10b981';
   const PRIMARY_BUTTON_DARK = '#059669';
 
-  const initialProducts = [
-    { _id: '65ffe3f1d9d7e5d8a9f0b1c2', name: 'Dog Food Premium 5kg', price: 250000, category: 'Dog Food' },
-    { _id: '65ffe3f1d9d7e5d8a9f0b1c3', name: 'Cat Food Salmon 2kg', price: 150000, category: 'Cat Food' },
-    { _id: '65ffe3f1d9d7e5d8a9f0b1c4', name: 'Bird Seed Mix 1kg', price: 50000, category: 'Bird Food' },
-  ];
-
-  const [products, setProducts] = useState(initialProducts); 
+  // empty initial product list; will fetch from API
+  const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
 
+  // read cart from localStorage once
   useEffect(() => {
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    document.documentElement.style.margin = '0';
-    document.documentElement.style.padding = '0';
+    try {
+      const stored = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCart(stored);
+    } catch (e) {
+      setCart([]);
+    }
   }, []);
 
+  // try multiple endpoints (public first), stop at first success
   useEffect(() => {
-    
-    const stored = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCart(stored);
+    let cancelled = false;
+
+    async function fetchProducts() {
+      const endpoints = ['/api/products', '/api/product', '/api/admin/product'];
+      for (let ep of endpoints) {
+        try {
+          const res = await fetch(ep);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (cancelled) return;
+          // expect array
+          if (Array.isArray(data)) {
+            setProducts(data);
+            return;
+          }
+          // if API returns object with .products
+          if (data && Array.isArray(data.products)) {
+            setProducts(data.products);
+            return;
+          }
+        } catch (err) {
+          // ignore and try next endpoint
+          // console.debug('fetch failed', ep, err);
+        }
+      }
+      // if none found, leave products empty
+    }
+
+    fetchProducts();
+    return () => { cancelled = true; };
   }, []);
+
+  // helpers to persist cart
+  function saveCart(next) {
+    setCart(next);
+    try { localStorage.setItem('cart', JSON.stringify(next)); } catch (e) {}
+  }
 
   function addToCart(p) {
-    const exists = cart.find(i => i.name === p.name);
+    // product may use title or name field; normalize
+    const title = p.title || p.name || 'Unknown';
+    const exists = cart.find(i => i.name === title);
     let next;
     if (exists) {
-      next = cart.map(i => i.name === p.name ? { ...i, qty: i.qty + 1 } : i);
+      next = cart.map(i => i.name === title ? { ...i, qty: i.qty + 1 } : i);
     } else {
-      next = [...cart, { product: p._id, name: p.name, price: p.price, qty: 1 }];
+      next = [...cart, { product: p._id, name: title, price: p.price || 0, qty: 1 }];
     }
-    setCart(next);
-    localStorage.setItem('cart', JSON.stringify(next));
+    saveCart(next);
   }
 
   function removeFromCart(productName) {
     const exists = cart.find(i => i.name === productName);
     if (!exists) return;
-
     let next;
     if (exists.qty === 1) {
       next = cart.filter(i => i.name !== productName);
     } else {
       next = cart.map(i => i.name === productName ? { ...i, qty: i.qty - 1 } : i);
     }
-    setCart(next);
-    localStorage.setItem('cart', JSON.stringify(next));
+    saveCart(next);
   }
 
   function getItemQuantity(productName) {
@@ -59,6 +91,9 @@ export default function SelectItems() {
     return item ? item.qty : 0;
   }
 
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+
+  /* ---------- STYLES (unchanged) ---------- */
   const containerStyle = {
     fontFamily: 'Arial, sans-serif',
     background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${PRIMARY_BUTTON_DARK} 50%, ${GRADIENT_END} 100%)`,
@@ -69,30 +104,18 @@ export default function SelectItems() {
     boxSizing: 'border-box'
   };
 
-  const headerStyle = {
-    textAlign: 'center',
-    marginBottom: '40px'
-  };
-
-  const titleStyle = {
-    color: 'white',
-    fontSize: '2.5em',
-    marginBottom: '25px',
-    textShadow: '0 3px 6px rgba(0,0,0,0.3)',
-    margin: '0 0 25px 0',
-    fontWeight: '700'
-  };
-
+  const headerStyle = { textAlign: 'center', marginBottom: '40px' };
+  const titleStyle = { color: 'white', fontSize: '2.5em', marginBottom: '25px', textShadow: '0 3px 6px rgba(0,0,0,0.3)', margin: '0 0 25px 0', fontWeight: '700' };
   const cartButtonStyle = {
-    background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, 
-    color: 'white', 
+    background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`,
+    color: 'white',
     padding: '15px 35px',
     borderRadius: '50px',
     textDecoration: 'none',
     fontSize: '1.2em',
     fontWeight: '700',
     display: 'inline-block',
-    boxShadow: `0 6px 20px rgba(16, 185, 129, 0.4)`, 
+    boxShadow: `0 6px 20px rgba(16, 185, 129, 0.4)`,
     transition: 'all 0.3s ease',
     textTransform: 'uppercase',
     letterSpacing: '1px'
@@ -120,7 +143,7 @@ export default function SelectItems() {
   const productImagePlaceholderStyle = {
     width: '100%',
     height: '180px',
-    background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${PRIMARY_BUTTON_DARK} 100%)`, 
+    background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${PRIMARY_BUTTON_DARK} 100%)`,
     borderRadius: '15px',
     marginBottom: '20px',
     display: 'flex',
@@ -130,117 +153,21 @@ export default function SelectItems() {
     color: 'white'
   };
 
-  const productNameStyle = {
-    fontSize: '1.4em',
-    fontWeight: '700',
-    color: '#2c3e50',
-    marginBottom: '10px',
-    margin: '0 0 10px 0'
-  };
-
-  const productCategoryStyle = {
-    color: '#6b7280', 
-    fontSize: '0.9em',
-    marginBottom: '15px',
-    backgroundColor: '#f9fafb', 
-    padding: '6px 15px',
-    borderRadius: '20px',
-    display: 'inline-block',
-    fontWeight: '500'
-  };
-
-  const productPriceStyle = {
-    fontSize: '1.4em',
-    fontWeight: '800',
-    color: PRIMARY_BUTTON_DARK, 
-    marginBottom: '20px'
-  };
-
-  const quantityControlStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '15px',
-    marginBottom: '15px',
-    padding: '10px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '15px'
-  };
-
-  const quantityButtonStyle = {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    border: 'none',
-    fontSize: '1.2em',
-    fontWeight: '700',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  };
-
-  const minusButtonStyle = {
-    ...quantityButtonStyle,
-    background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)', 
-    color: 'white'
-  };
-
-  const plusButtonStyle = {
-    ...quantityButtonStyle,
-    background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, 
-    color: 'white'
-  };
-
-  const quantityDisplayStyle = {
-    fontSize: '1.3em',
-    fontWeight: '700',
-    color: '#2c3e50',
-    minWidth: '50px',
-    textAlign: 'center'
-  };
-
-  const addToCartButtonStyle = {
-    background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, 
-    color: 'white',
-    border: 'none',
-    padding: '12px 25px',
-    borderRadius: '25px',
-    fontSize: '1.1em',
-    fontWeight: '600',
-    cursor: 'pointer',
-    width: '100%',
-    transition: 'all 0.3s ease',
-    boxShadow: `0 4px 15px rgba(16, 185, 129, 0.3)`
-  };
-
-  const pawIconStyle = {
-    fontSize: '2em',
-    marginBottom: '15px',
-    color: 'white'
-  };
-
-  const totalItemsStyle = {
-    background: 'rgba(255,255,255,0.2)',
-    color: 'white',
-    padding: '10px 20px',
-    borderRadius: '20px',
-    fontSize: '1.1em',
-    fontWeight: '600',
-    marginBottom: '20px',
-    display: 'inline-block'
-  };
-
-  const emptyStateStyle = {
-    textAlign: 'center',
-    color: 'white',
-    fontSize: '1.2em',
-    marginTop: '50px'
-  };
+  const productNameStyle = { fontSize: '1.4em', fontWeight: '700', color: '#2c3e50', marginBottom: '10px', margin: '0 0 10px 0' };
+  const productCategoryStyle = { color: '#6b7280', fontSize: '0.9em', marginBottom: '15px', backgroundColor: '#f9fafb', padding: '6px 15px', borderRadius: '20px', display: 'inline-block', fontWeight: '500' };
+  const productPriceStyle = { fontSize: '1.4em', fontWeight: '800', color: PRIMARY_BUTTON_DARK, marginBottom: '20px' };
+  const quantityControlStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '15px' };
+  const quantityButtonStyle = { width: '40px', height: '40px', borderRadius: '50%', border: 'none', fontSize: '1.2em', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+  const minusButtonStyle = { ...quantityButtonStyle, background: 'linear-gradient(135deg, #ff6b6b, #ee5a52)', color: 'white' };
+  const plusButtonStyle = { ...quantityButtonStyle, background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, color: 'white' };
+  const quantityDisplayStyle = { fontSize: '1.3em', fontWeight: '700', color: '#2c3e50', minWidth: '50px', textAlign: 'center' };
+  const addToCartButtonStyle = { background: `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`, color: 'white', border: 'none', padding: '12px 25px', borderRadius: '25px', fontSize: '1.1em', fontWeight: '600', cursor: 'pointer', width: '100%', transition: 'all 0.3s ease', boxShadow: `0 4px 15px rgba(16, 185, 129, 0.3)` };
+  const pawIconStyle = { fontSize: '2em', marginBottom: '15px', color: 'white' };
+  const totalItemsStyle = { background: 'rgba(255,255,255,0.2)', color: 'white', padding: '10px 20px', borderRadius: '20px', fontSize: '1.1em', fontWeight: '600', marginBottom: '20px', display: 'inline-block' };
+  const emptyStateStyle = { textAlign: 'center', color: 'white', fontSize: '1.2em', marginTop: '50px' };
 
   const getProductIcon = (category) => {
-    switch(category?.toLowerCase()) {
+    switch (String(category || '').toLowerCase()) {
       case 'pet food': return '🍖';
       case 'cat food': return '🐱';
       case 'dog food': return '🐕';
@@ -249,21 +176,19 @@ export default function SelectItems() {
     }
   };
 
-  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-
   return (
     <div style={containerStyle}>
       <div style={headerStyle}>
         <div style={pawIconStyle}>🐾</div>
-        <h1 style={titleStyle}>Natural Nosh Store</h1> 
-        
+        <h1 style={titleStyle}>Natural Nosh Store</h1>
+
         {totalItems > 0 && (
           <div style={totalItemsStyle}>
             📦 {totalItems} item{totalItems > 1 ? 's' : ''} di keranjang
           </div>
         )}
-        
-        <a 
+
+        <a
           href="/checkout"
           style={cartButtonStyle}
           onMouseOver={(e) => {
@@ -281,16 +206,21 @@ export default function SelectItems() {
 
       {products.length === 0 ? (
         <div style={emptyStateStyle}>
-          <div style={{fontSize: '3em', marginBottom: '20px'}}>🐾</div>
+          <div style={{ fontSize: '3em', marginBottom: '20px' }}>🐾</div>
           <p>Loading produk amazing...</p>
         </div>
       ) : (
         <div style={productsGridStyle}>
           {products.map(p => {
-            const quantity = getItemQuantity(p.name);
+            // normalize fields: title or name
+            const title = p.title || p.name || 'Untitled';
+            const category = p.category || p.categoryName || p.type || '';
+            const price = p.price || 0;
+            const quantity = getItemQuantity(title);
+
             return (
-              <div 
-                key={p._id} 
+              <div
+                key={p._id}
                 style={productCardStyle}
                 onMouseOver={(e) => {
                   e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
@@ -302,18 +232,18 @@ export default function SelectItems() {
                 }}
               >
                 <div style={productImagePlaceholderStyle}>
-                  {getProductIcon(p.category)}
+                  {getProductIcon(category)}
                 </div>
-                
-                <h3 style={productNameStyle}>{p.name}</h3>
-                <p style={productCategoryStyle}>{p.category}</p>
-                <p style={productPriceStyle}>Rp {p.price.toLocaleString()}</p>
-                
+
+                <h3 style={productNameStyle}>{title}</h3>
+                <p style={productCategoryStyle}>{category}</p>
+                <p style={productPriceStyle}>Rp {Number(price).toLocaleString()}</p>
+
                 {quantity > 0 ? (
                   <div>
                     <div style={quantityControlStyle}>
-                      <button 
-                        onClick={() => removeFromCart(p.name)}
+                      <button
+                        onClick={() => removeFromCart(title)}
                         style={minusButtonStyle}
                         onMouseOver={(e) => {
                           e.target.style.transform = 'scale(1.1)';
@@ -327,8 +257,8 @@ export default function SelectItems() {
                         −
                       </button>
                       <span style={quantityDisplayStyle}>{quantity}</span>
-                      <button 
-                        onClick={() => addToCart(p)}
+                      <button
+                        onClick={() => addToCart({ ...p, title })}
                         style={plusButtonStyle}
                         onMouseOver={(e) => {
                           e.target.style.transform = 'scale(1.1)';
@@ -342,13 +272,13 @@ export default function SelectItems() {
                         +
                       </button>
                     </div>
-                    <div style={{textAlign: 'center', fontSize: '0.9em', color: '#059669', fontWeight: '600'}}>
+                    <div style={{ textAlign: 'center', fontSize: '0.9em', color: '#059669', fontWeight: '600' }}>
                       ✅ Added to cart
                     </div>
                   </div>
                 ) : (
-                  <button 
-                    onClick={() => addToCart(p)}
+                  <button
+                    onClick={() => addToCart({ ...p, title })}
                     style={addToCartButtonStyle}
                     onMouseOver={(e) => {
                       e.target.style.background = `linear-gradient(135deg, ${PRIMARY_BUTTON_DARK}, ${PRIMARY_BUTTON_LIGHT})`;

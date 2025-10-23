@@ -1,11 +1,10 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-const signToken = (user) => {
-  return jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+export function signToken(user) {
+  const payload = { id: user._id?.toString?.(), isAdmin: !!user.isAdmin };
+  return jwt.sign(payload, process.env.JWT_SECRET || 'dev-secret', { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 }
 
-const verifyToken = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET);
+export function verifyToken(token) {
+  return jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
 }
-
-module.exports = { signToken, verifyToken };
