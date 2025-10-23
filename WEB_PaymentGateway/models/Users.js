@@ -1,16 +1,17 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-  name: String,
+  name: { type: String },
   email: { type: String, unique: true, sparse: true },
-  passwordHash: String, // hash bcrypt
+  passwordHash: { type: String },
   phone: { type: String, unique: true, sparse: true },
   isAdmin: { type: Boolean, default: false },
   mfaEnabled: { type: Boolean, default: false },
-  // OTP single-use (store short-lived), or better simpan in-memory/Redis. Simpel: store otp + expiresAt
-  otp: String,
-  otpExpiresAt: Date,
+  otp: { type: String, default: null },
+  otpExpiresAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.models.User || mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+export default User;

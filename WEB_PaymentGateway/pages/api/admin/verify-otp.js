@@ -1,6 +1,6 @@
 import dbConnect from '../../../lib/mongodb';
-import User from '../../../models/User';
-import { signToken } from '../../../lib/auth';
+import User from '../../../models/Users';
+import { signToken } from '../../../util/auth';
 
 export default async function handler(req,res){
   if (req.method !== 'POST') return res.status(405).end();

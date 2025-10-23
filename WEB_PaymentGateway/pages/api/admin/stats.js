@@ -1,14 +1,16 @@
+// pages/api/admin/stats.js
 import dbConnect from '../../../lib/mongodb';
-import Order from '../../../models/Order';
+import Checkout from '../../../models/Checkout';
 import { requireAdmin } from '../../../lib/middleware';
-import mongoose from 'mongoose';
 
-async function handler(req,res){
+async function handler(req, res) {
   await dbConnect();
-  const { range='daily' } = req.query; // daily or monthly
+  const { range = 'daily' } = req.query; // daily or monthly
+
+  // We only count paid checkouts for omzet
   if (range === 'daily') {
     const pipeline = [
-      { $match: { status: 'paid' } },
+      { $match: { status: 'PAID' } }, // Checkout uses 'PAID' for successful payments
       { $group: {
           _id: {
             year: { $year: "$createdAt" },
@@ -20,8 +22,7 @@ async function handler(req,res){
       }},
       { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
     ];
-    const data = await Order.aggregate(pipeline);
-    // format date label
+    const data = await Checkout.aggregate(pipeline);
     const formatted = data.map(d => {
       const { year, month, day } = d._id;
       return { label: `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`, total: d.total, count: d.count };
@@ -29,7 +30,7 @@ async function handler(req,res){
     return res.json(formatted);
   } else {
     const pipeline = [
-      { $match: { status: 'paid' } },
+      { $match: { status: 'PAID' } },
       { $group: {
           _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
           total: { $sum: "$total" },
@@ -37,7 +38,7 @@ async function handler(req,res){
       }},
       { $sort: { "_id.year": 1, "_id.month": 1 } }
     ];
-    const data = await Order.aggregate(pipeline);
+    const data = await Checkout.aggregate(pipeline);
     const formatted = data.map(d => {
       const { year, month } = d._id;
       return { label: `${year}-${String(month).padStart(2,'0')}`, total: d.total, count: d.count };
