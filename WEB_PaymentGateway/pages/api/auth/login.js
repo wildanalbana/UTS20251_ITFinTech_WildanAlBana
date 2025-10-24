@@ -20,33 +20,33 @@ export default async function handler(req, res) {
   const valid = await bcrypt.compare(password, user.passwordHash || '');
   if (!valid) return res.status(401).json({ error: 'Email atau password salah' });
 
-  // --- Jika user menggunakan MFA (multi-factor) ---
+  // Jika user memakai MFA (OTP WhatsApp)
   if (user.mfaEnabled) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit
     user.otp = otp;
     user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // berlaku 5 menit
     await user.save();
 
+    console.log(`✅ OTP untuk ${user.phone}: ${otp}`);
+
     try {
       if (user.phone) {
         await sendWhatsapp(
           user.phone,
-          `Halo ${user.name || 'user'}! Kode OTP login kamu adalah *${otp}* (berlaku 5 menit).`
+          `Halo ${user.name || 'user'}! 👋\n\nKode OTP login kamu adalah *${otp}*.\nBerlaku selama 5 menit.\n\n(Natural Nosh Store 🐾)`
         );
       }
     } catch (err) {
-      console.error('Gagal kirim WA OTP:', err.message);
+      console.error('❌ Gagal kirim OTP via WhatsApp:', err.message);
     }
 
     return res.status(200).json({
       mfaRequired: true,
-      phone: user.phone
-        ? user.phone.replace(/.(?=.{4})/g, '*')
-        : undefined
+      phone: user.phone ? user.phone.replace(/.(?=.{4})/g, '*') : undefined,
     });
   }
 
-  // --- Jika tidak menggunakan MFA ---
+  // Jika user tidak memakai MFA
   const token = signToken(user);
   res.setHeader(
     'Set-Cookie',

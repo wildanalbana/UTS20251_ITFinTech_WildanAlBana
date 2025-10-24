@@ -84,80 +84,250 @@ export default function BuyerLogin() {
 
   return (
     <div style={page}>
-      <div style={card}>
-        <h2 style={{ margin: 0 }}>Login Pembeli</h2>
+      <header style={header}>
+        <div style={headerLeft}>
+          <div style={logo}>Natural Nosh Store</div>
+        </div>
 
-        {!mfaRequired ? (
-          <form onSubmit={handleLogin} style={form}>
-            <label style={label}>
-              Email
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={input}/>
-            </label>
+        <div style={headerRight}>
+          <button onClick={() => router.push('/auth/login')} style={accountBtn}>
+            <span style={avatar}>U</span>
+            <span style={{ marginLeft: 8 }}>Account</span>
+          </button>
+        </div>
+      </header>
 
-            <label style={label}>
-              Password
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={input}/>
-            </label>
-
-            {error && <div style={err}>{error}</div>}
-
-            <div style={{ display:'flex', gap:8, marginTop: 8 }}>
-              <button type="submit" disabled={loading} style={btn}>
-                {loading ? 'Loading...' : 'Login'}
-              </button>
-              <button type="button" onClick={() => router.push('/auth/register')} style={ghostBtn}>
-                Register
-              </button>
+      <main style={main}>
+        <div style={cardWrap}>
+          <div style={card}>
+            <div style={cardHeader}>
+              <h2 style={{ margin: 0 }}>Login Pembeli</h2>
+              <p style={{ margin: '6px 0 0 0', color: '#6b7280', fontSize: 13 }}>
+                Masuk untuk melanjutkan pembelian
+              </p>
             </div>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp} style={form}>
-            <p>Kami sudah mengirim kode OTP ke WhatsApp: <b>{maskedPhone || 'nomor kamu'}</b></p>
 
-            <label style={label}>
-              Kode OTP
-              <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required style={input} />
-            </label>
+            {!mfaRequired ? (
+              <form onSubmit={handleLogin} style={form}>
+                <label style={label}>
+                  Email
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    style={input}
+                    placeholder="nama@contoh.com"
+                  />
+                </label>
 
-            {error && <div style={err}>{error}</div>}
+                <label style={label}>
+                  Password
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    style={input}
+                    placeholder="Masukkan password"
+                  />
+                </label>
 
-            <div style={{ display:'flex', gap:8, marginTop: 8 }}>
-              <button type="submit" disabled={loading} style={btn}>
-                {loading ? 'Memverifikasi...' : 'Verifikasi OTP'}
-              </button>
-              <button type="button" onClick={() => { setMfaRequired(false); setOtp(''); }} style={ghostBtn}>
-                Batal
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
+                {error && <div style={err}>{error}</div>}
+
+                <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                  <button type="submit" disabled={loading} style={btn}>
+                    {loading ? 'Loading...' : 'Login'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => router.push('/auth/register')}
+                    style={ghostBtn}
+                  >
+                    Register
+                  </button>
+                </div>
+
+                <div style={{ marginTop: 12, fontSize: 13, color: '#6b7280' }}>
+                  Tidak punya akun? <button type="button" onClick={() => router.push('/auth/register')} style={linkLike}>Buat akun</button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} style={form}>
+                <p style={{ margin: 0, color: '#374151' }}>
+                  Kami sudah mengirim kode OTP ke WhatsApp:
+                  <span style={{ fontWeight: 700, marginLeft: 6 }}>{maskedPhone || 'nomormu'}</span>
+                </p>
+
+                <label style={label}>
+                  Kode OTP
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={e => setOtp(e.target.value)}
+                    required
+                    style={input}
+                    placeholder="Masukkan 6 digit OTP"
+                  />
+                </label>
+
+                {error && <div style={err}>{error}</div>}
+
+                <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+                  <button type="submit" disabled={loading} style={btn}>
+                    {loading ? 'Memverifikasi...' : 'Verifikasi OTP'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMfaRequired(false); setOtp(''); }}
+                    style={ghostBtn}
+                  >
+                    Batal
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
 
-/* --- simple styles --- */
+/* ---------------- Styles ---------------- */
 const page = {
   minHeight: '100vh',
   display: 'flex',
+  flexDirection: 'column',
+  background: 'linear-gradient(90deg,#10b981,#059669)',
+
+};
+
+const header = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '18px 36px',
+  background: 'linear-gradient(90deg,#10b981,#059669)',
+  color: '#fff'
+};
+
+const headerLeft = { display: 'flex', alignItems: 'center', gap: 12 };
+const headerRight = { display: 'flex', alignItems: 'center', gap: 12 };
+
+const logo = {
+  fontSize: 22,
+  fontWeight: 800,
+  letterSpacing: '-0.5px'
+};
+
+const checkoutBtn = {
+  padding: '10px 18px',
+  background: 'rgba(255,255,255,0.12)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  color: '#fff',
+  borderRadius: 999,
+  cursor: 'pointer',
+  fontWeight: 700
+};
+
+const accountBtn = {
+  padding: '8px 12px',
+  background: 'rgba(255,255,255,0.18)',
+  border: 'none',
+  color: '#fff',
+  borderRadius: 999,
+  display: 'flex',
+  alignItems: 'center',
+  cursor: 'pointer'
+};
+
+const avatar = {
+  width: 34,
+  height: 34,
+  borderRadius: '50%',
+  background: '#061520',
+  display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: '#f3f4f6',
-  padding: 20,
-  boxSizing: 'border-box'
+  color: '#fff',
+  fontWeight: 800
+};
+
+const main = {
+  display: 'flex',
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 28
+};
+
+const cardWrap = {
+  width: '100%',
+  maxWidth: 980,
+  padding: '30px 20px'
 };
 
 const card = {
-  width: 420,
   background: '#fff',
-  padding: 24,
-  borderRadius: 8,
-  boxShadow: '0 6px 30px rgba(2,6,23,0.08)'
+  borderRadius: 12,
+  padding: 28,
+  boxShadow: '0 12px 40px rgba(2,6,23,0.08)'
 };
 
-const form = { display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 };
-const label = { fontSize: 13, color: '#111827', display: 'flex', flexDirection: 'column', gap:6 };
-const input = { padding: 10, borderRadius: 6, border: '1px solid #e5e7eb', marginTop:6 };
-const btn = { padding: '10px 14px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' };
-const ghostBtn = { padding: '10px 14px', background: '#fff', color: '#0f172a', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer' };
-const err = { color: '#ef4444', fontSize: 13, marginTop: 6 };
+const cardHeader = { marginBottom: 18 };
+
+const form = { display: 'flex', flexDirection: 'column', gap: 12 };
+
+const label = {
+  fontSize: 13,
+  color: '#374151',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8
+};
+
+const input = {
+  padding: '12px 14px',
+  borderRadius: 8,
+  border: '1px solid #e6eaf0',
+  outline: 'none',
+  fontSize: 14,
+  boxSizing: 'border-box'
+};
+
+const btn = {
+  padding: '12px 14px',
+  background: '#0f172a',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 8,
+  cursor: 'pointer',
+  fontWeight: 700
+};
+
+const ghostBtn = {
+  padding: '12px 14px',
+  background: '#fff',
+  color: '#0f172a',
+  border: '1px solid #e6eaf0',
+  borderRadius: 8,
+  cursor: 'pointer'
+};
+
+const linkLike = {
+  background: 'transparent',
+  border: 'none',
+  color: '#059669',
+  padding: 0,
+  cursor: 'pointer',
+  textDecoration: 'underline',
+  fontWeight: 700
+};
+
+const err = {
+  color: '#ef4444',
+  fontSize: 13,
+  marginTop: 6
+};

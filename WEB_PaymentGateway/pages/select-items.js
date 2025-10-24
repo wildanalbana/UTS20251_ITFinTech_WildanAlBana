@@ -1,17 +1,26 @@
-// components/SelectItems.js  (atau pages/... sesuai strukturmu)
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { UserMenu } from '../components/UserMenu';
 
 export default function SelectItems() {
+  useEffect(() => {
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.padding = '0';
+  }, []);
+  const router = useRouter();
+
   const GRADIENT_START = '#10b981';
   const GRADIENT_END = '#047857';
   const PRIMARY_BUTTON_LIGHT = '#10b981';
   const PRIMARY_BUTTON_DARK = '#059669';
 
-  // empty initial product list; will fetch from API
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
+  const [checkingAuth, setCheckingAuth] = useState(false);
 
-  // read cart from localStorage once
+  // Ambil keranjang dari localStorage saat pertama kali render
   useEffect(() => {
     try {
       const stored = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -21,7 +30,7 @@ export default function SelectItems() {
     }
   }, []);
 
-  // try multiple endpoints (public first), stop at first success
+  // Fetch produk dari API (coba beberapa endpoint)
   useEffect(() => {
     let cancelled = false;
 
@@ -33,36 +42,56 @@ export default function SelectItems() {
           if (!res.ok) continue;
           const data = await res.json();
           if (cancelled) return;
-          // expect array
+
           if (Array.isArray(data)) {
             setProducts(data);
             return;
           }
-          // if API returns object with .products
           if (data && Array.isArray(data.products)) {
             setProducts(data.products);
             return;
           }
         } catch (err) {
-          // ignore and try next endpoint
-          // console.debug('fetch failed', ep, err);
+          // coba endpoint lain
         }
       }
-      // if none found, leave products empty
     }
 
     fetchProducts();
     return () => { cancelled = true; };
   }, []);
 
-  // helpers to persist cart
+  // Simpan keranjang ke localStorage
   function saveCart(next) {
     setCart(next);
     try { localStorage.setItem('cart', JSON.stringify(next)); } catch (e) {}
   }
 
-  function addToCart(p) {
-    // product may use title or name field; normalize
+  // Cek autentikasi dengan server (memanfaatkan cookie HttpOnly)
+  async function isAuthenticated() {
+    try {
+      setCheckingAuth(true);
+      const res = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      setCheckingAuth(false);
+      return res.ok;
+    } catch (err) {
+      setCheckingAuth(false);
+      return false;
+    }
+  }
+
+  // Add to cart: asinkron karena perlu cek session di server
+  async function addToCart(p) {
+    const auth = await isAuthenticated();
+    if (!auth) {
+      alert('⚠️ Silakan login terlebih dahulu sebelum menambahkan produk ke keranjang.');
+      router.push('/auth/login');
+      return;
+    }
+
     const title = p.title || p.name || 'Unknown';
     const exists = cart.find(i => i.name === title);
     let next;
@@ -74,6 +103,7 @@ export default function SelectItems() {
     saveCart(next);
   }
 
+  // Kurangi / hapus item dari keranjang
   function removeFromCart(productName) {
     const exists = cart.find(i => i.name === productName);
     if (!exists) return;
@@ -93,12 +123,9 @@ export default function SelectItems() {
 
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
 
-  /* ---------- STYLES (unchanged) ---------- */
   const containerStyle = {
     fontFamily: 'Arial, sans-serif',
     background: `linear-gradient(135deg, ${GRADIENT_START} 0%, ${PRIMARY_BUTTON_DARK} 50%, ${GRADIENT_END} 100%)`,
-    minHeight: '100vh',
-    width: '100vw',
     margin: '0',
     padding: '20px',
     boxSizing: 'border-box'
@@ -115,7 +142,7 @@ export default function SelectItems() {
     fontSize: '1.2em',
     fontWeight: '700',
     display: 'inline-block',
-    boxShadow: `0 6px 20px rgba(16, 185, 129, 0.4)`,
+    boxShadow: `0 6px 20px #10b98166`,
     transition: 'all 0.3s ease',
     textTransform: 'uppercase',
     letterSpacing: '1px'
@@ -178,31 +205,16 @@ export default function SelectItems() {
 
   return (
     <div style={containerStyle}>
-      <div style={headerStyle}>
-        <div style={pawIconStyle}>🐾</div>
-        <h1 style={titleStyle}>Natural Nosh Store</h1>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16, marginBottom: '40px' }}>
+  <div style={{ textAlign:'center' }}>
+    <h1 style={titleStyle}>Natural Nosh Store</h1>
+  </div>
 
-        {totalItems > 0 && (
-          <div style={totalItemsStyle}>
-            📦 {totalItems} item{totalItems > 1 ? 's' : ''} di keranjang
-          </div>
-        )}
-
-        <a
-          href="/checkout"
-          style={cartButtonStyle}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-3px) scale(1.05)';
-            e.target.style.boxShadow = '0 10px 30px rgba(16, 185, 129, 0.6)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0) scale(1)';
-            e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
-          }}
-        >
-          🛒 CHECKOUT ({totalItems})
-        </a>
-      </div>
+  <div style={{ marginLeft: 'auto', display:'flex', alignItems:'center', gap:12 }}>
+    <a href="/checkout" style={cartButtonStyle}>🛒 CHECKOUT ({totalItems})</a>
+    <UserMenu />
+  </div>
+</div>
 
       {products.length === 0 ? (
         <div style={emptyStateStyle}>
@@ -212,7 +224,6 @@ export default function SelectItems() {
       ) : (
         <div style={productsGridStyle}>
           {products.map(p => {
-            // normalize fields: title or name
             const title = p.title || p.name || 'Untitled';
             const category = p.category || p.categoryName || p.type || '';
             const price = p.price || 0;
@@ -245,14 +256,6 @@ export default function SelectItems() {
                       <button
                         onClick={() => removeFromCart(title)}
                         style={minusButtonStyle}
-                        onMouseOver={(e) => {
-                          e.target.style.transform = 'scale(1.1)';
-                          e.target.style.boxShadow = '0 4px 12px rgba(255, 107, 107, 0.4)';
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.transform = 'scale(1)';
-                          e.target.style.boxShadow = 'none';
-                        }}
                       >
                         −
                       </button>
@@ -260,14 +263,6 @@ export default function SelectItems() {
                       <button
                         onClick={() => addToCart({ ...p, title })}
                         style={plusButtonStyle}
-                        onMouseOver={(e) => {
-                          e.target.style.transform = 'scale(1.1)';
-                          e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
-                        }}
-                        onMouseOut={(e) => {
-                          e.target.style.transform = 'scale(1)';
-                          e.target.style.boxShadow = 'none';
-                        }}
                       >
                         +
                       </button>
@@ -280,16 +275,6 @@ export default function SelectItems() {
                   <button
                     onClick={() => addToCart({ ...p, title })}
                     style={addToCartButtonStyle}
-                    onMouseOver={(e) => {
-                      e.target.style.background = `linear-gradient(135deg, ${PRIMARY_BUTTON_DARK}, ${PRIMARY_BUTTON_LIGHT})`;
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.background = `linear-gradient(135deg, ${PRIMARY_BUTTON_LIGHT}, ${PRIMARY_BUTTON_DARK})`;
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.3)';
-                    }}
                   >
                     🛍️ Add to Cart
                   </button>

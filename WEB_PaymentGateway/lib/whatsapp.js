@@ -1,36 +1,57 @@
 // lib/whatsapp.js
-import twilio from 'twilio';
+import 'dotenv/config';
+import fetch from 'node-fetch'; // kalau Node <18, install: npm install node-fetch@3
 
-// Ambil kredensial dari .env
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const from = process.env.TWILIO_WHATSAPP_FROM; // contoh: 'whatsapp:+14155238886'
-
-// Pastikan Twilio terinisialisasi hanya jika variabel tersedia
-let client = null;
-if (accountSid && authToken) {
-  client = twilio(accountSid, authToken);
-}
+const from = process.env.TWILIO_WHATSAPP_FROM; // contoh: whatsapp:+14155238886
 
 /**
- * Kirim pesan WhatsApp ke user.
- * @param {string} to Nomor tujuan, contoh: +6281234567890
- * @param {string} message Isi pesan yang dikirim
+ * Kirim pesan WhatsApp ke user via Twilio API (tanpa SDK)
+ * @param {string} to Nomor tujuan (contoh: +6287776705742)
+ * @param {string} message Isi pesan
  */
 export async function sendWhatsapp(to, message) {
-  if (!client) {
-    console.log('ℹ️ Twilio not configured, WA message skipped:', message);
+  if (!accountSid || !authToken || !from) {
+    console.error('❌ TWILIO_* env belum lengkap. Cek .env kamu.');
     return;
   }
 
+  const normalized = String(to).replace(/\s/g, '');
+  const toWhatsApp = normalized.startsWith('whatsapp:')
+    ? normalized
+    : `whatsapp:${normalized}`;
+
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+
+  const params = new URLSearchParams();
+  params.append('To', toWhatsApp);
+  params.append('From', from);
+  params.append('Body', message);
+
+  const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
+
   try {
-    const result = await client.messages.create({
-      body: message,
-      from,
-      to: `whatsapp:${to.replace(/\s/g, '')}` // pastikan format sesuai
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params,
     });
-    console.log(`✅ WhatsApp sent to ${to}: ${result.sid}`);
+
+    const data = await res.json();
+    if (!res.ok) {
+      console.error('❌ Gagal kirim WA:', data.message || data);
+      return null;
+    }
+
+    console.log(`✅ WhatsApp terkirim ke ${toWhatsApp}`);
+    console.log('📦 SID:', data.sid);
+    return data;
   } catch (err) {
-    console.error('❌ WhatsApp send failed:', err.message);
+    console.error('❌ Error kirim WA (network):', err.message);
+    return null;
   }
 }

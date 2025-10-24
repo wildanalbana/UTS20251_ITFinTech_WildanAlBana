@@ -6,6 +6,12 @@ import {
 } from 'recharts';
 
 export default function Dashboard(){
+  useEffect(() => {
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      document.documentElement.style.margin = '0';
+      document.documentElement.style.padding = '0';
+    }, []);
   const [stats, setStats] = useState([]);
   const [range, setRange] = useState('daily'); // daily or monthly
   const [summary, setSummary] = useState({ totalOrders:0, totalRevenue:0 });
