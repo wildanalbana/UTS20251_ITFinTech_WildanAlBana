@@ -20,6 +20,7 @@
     "react-dom": "18.3.1",
     "recharts": "^3.3.0",
     "swr": "^2.3.6",
+    "twilio": "^5.10.3",
     "xendit-node": "^7.0.0"
   },
   "devDependencies": {
